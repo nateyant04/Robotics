@@ -44,8 +44,32 @@ def home():
 def centre():
     motor_shoulder.turn(15,100)
     motor_elbow.turn(-15,120)
+    
+def slap_left():
+    motor_shoulder.turn(15,130)
+    motor_elbow.turn(-60,110)
+    home()
+    
+def slap_right():
+    motor_elbow.turn(-15,270)
+    motor_shoulder.turn(15,80)
+    motor_elbow.turn(15,30)
+    motor_shoulder.turn(15,30)
+    motor_elbow.turn(15,30)
+    motor_shoulder.turn(15,30)
+    motor_elbow.turn(60,180)
+    home()
+    
+def slap_forward():
+    motor_elbow.turn(-15,250)
+    motor_shoulder.turn(15,80)
+    motor_elbow.turn(50,100)
+    home()
 
 prep()
 home()
-centre()
+slap_forward()
+
+#home()
+#centre()
 cleanup() #Don't do this until you're done, but still check it out!
