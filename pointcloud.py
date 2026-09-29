@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import pyvista as pv
 from sklearn.cluster import MiniBatchKMeans
+#import Arm
 
 # i dont do blurring here because it works fine without but we should probably still do it in the real one
 # cv2 also has a built in gauss blur with cv2.GaussianBlur(img, (5, 5), 0) turns out
@@ -9,8 +10,8 @@ from sklearn.cluster import MiniBatchKMeans
 
 # distinct colors (RGB) used for cluster labels
 PALETTE = np.array([
-    [230, 60, 60],
-    [60, 140, 230],
+    [0,0,0],
+    [255,255,255],
     [80, 200, 90],
     [240, 200, 50],
     [180, 90, 220],
@@ -19,6 +20,7 @@ PALETTE = np.array([
     [240, 240, 240],
 ], dtype=np.uint8)
 
+cam = cv2.VideoCapture(0)
 
 def label_colors(labels):
     return PALETTE[np.asarray(labels) % len(PALETTE)]
@@ -161,10 +163,13 @@ def show_steps(images, titles=None, display_images=None, point_colors=None,
     pl.add_key_event("a", lambda: goto(state["i"] - 1))
 
     pl.show()
+    
+        
 
 
 bg = cv2.imread("bg.jpg")
-frame = cv2.imread("frame.jpg")
+#frame = cv2.imread("frame.jpg")
+r, frame = cam.read()
 
 diff = cv2.absdiff(bg, frame)
 diff = cv2.normalize(diff, None, 0, 255, cv2.NORM_MINMAX)
@@ -183,10 +188,20 @@ cluster_bgr = np.ascontiguousarray(cluster_rgb[..., ::-1])   # for the left pane
 centers_rgb = km.cluster_centers_[:, ::-1] / 255.0           # BGR -> RGB, cloud coords
 centroid_cols = label_colors(np.arange(km.n_clusters))
 
-show_steps(
-    [bg, frame, diff, diff],
-    titles=["plate", "frame", "diff", "clusters"],
-    display_images=[bg, frame, diff, cluster_bgr],
-    point_colors=[None, None, None, cluster_rgb],
-    centroids=[None, None, None, (centers_rgb, centroid_cols)],
-)
+m = cv2.cvtColor(cluster_rgb, cv2.COLOR_BGR2GRAY)
+print(cv2.mean(frame, mask=m==255))
+
+cv2.imshow("a", frame*(cluster_rgb/255))
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+print((cluster_rgb/255).max())
+
+def find_colour(i):
+    pass
+
+cnts, _ = cv2.findContours(cv2.cvtColor(cluster_rgb, cv2.COLOR_BGR2GRAY), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+a = cv2.drawContours(frame, cnts, 0, (0, 255, 0))
+
+
+
