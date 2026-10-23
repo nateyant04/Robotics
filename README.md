@@ -1,13 +1,1 @@
-## Todo
-- [ ] Arm control
-  - [ ] Function to move peice left
-  - [ ] Function to move peice right
-  - [ ] Function to move peice away (reject)
-- [ ] Computer vision
-  - [ ] Detect position of peice in frame
-    - [x] normalize(blur + difference)
-    - [x] k means get position and rough size
-  - [ ] Detect color(s) and find closest reference
-    - [ ] Get the reference colours (someone has to go and take pictures of them)
-  - [ ] Detect shape ?? somehow 
-- [ ] Integration 
+robotics
