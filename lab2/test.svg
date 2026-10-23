@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- test drawing: a shape of each kind, plus a transform -->
+  <rect x="5" y="5" width="90" height="90" fill="none" stroke="black"/>
+  <circle cx="50" cy="50" r="30" fill="none" stroke="black"/>
+  <path d="M 20 80 Q 50 20 80 80" fill="none" stroke="black"/>
+  <path d="M 30 40 A 8 8 0 1 1 46 40 Z" fill="none" stroke="black"/>
+  <g transform="translate(70 25) rotate(45)">
+    <polygon points="-8,-8 8,-8 8,8 -8,8" fill="none" stroke="black"/>
+  </g>
+  <text x="10" y="15">text is ignored</text>
+</svg>
