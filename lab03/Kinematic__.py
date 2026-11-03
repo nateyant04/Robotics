@@ -371,5 +371,18 @@ def main(args):
         print(__doc__)
 
 
+def run_all(svg_files, dry=False):
+    # Check the box, then draw each SVG in turn (pausing in between to change paper)
+    check()
+    for i, filename in enumerate(svg_files):
+        if not dry:
+            input(f'\nReady to draw {filename}? Toggle UP, uncap the pen, then press Enter...')
+        draw_svg(filename, dry=dry)
+    print('\nDone. Remember to cap the pen!')
+
+
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    if len(sys.argv) > 1:          # command line still works the same as before
+        main(sys.argv[1:])
+    else:                          # pressing Run in Thonny lands here
+        run_all(['house.svg', 'star.svg'], dry=True)   # change to dry=False on the rig
