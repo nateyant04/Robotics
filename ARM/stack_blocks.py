@@ -28,6 +28,8 @@ ARM_IP = '192.168.1.232'
 # ----------------------------------------------------------------------------
 # Recorded poses (from txtv2). Index = location number.
 # ----------------------------------------------------------------------------
+initialAngles = [-0.00, -0.20, 0.18, 0.00, 0.02, 0.00] 
+
 ABOVE = [  # gripper pointing down, just above each block (kept for reference)
     {'x': 244.103989, 'y': 296.435425, 'z': 29.022118, 'roll': 179.349999, 'pitch': 4.280854, 'yaw': -179.98879},
     {'x': 554.347107, 'y': 335.588013, 'z': 30.814697, 'roll': 176.279117, 'pitch': -1.44288, 'yaw': 52.932763},
@@ -78,9 +80,9 @@ MEASURE = [  # horizontal, jaws on the block's ends
 #   - at least MIN_GAP_BETWEEN_TOWERS mm from each other: the open jaws are
 #     ~83 mm wide, so the gripper needs room beside each tower
 STACK_SPOTS = [
-    None,   # tower 0  (tallest block of each tower goes on the bottom)
-    None,   # tower 1
-    None,   # tower 2
+    {'x': 42.218468, 'y': -351.457367, 'z': -8.29157, 'roll': 179.414056, 'pitch': 4.53605, 'yaw': 91.069235},   # tower 0  (tallest block of each tower goes on the bottom)
+    {'x': -58.882305, 'y': -350.720947, 'z': -11.582797, 'roll': -179.993259, 'pitch': 3.24254, 'yaw': 90.780006},   # tower 1
+    {'x': -156.913803, 'y': -351.150177, 'z': -6.09854, 'roll': 179.904107, 'pitch': 4.175888, 'yaw': 89.525228},   # tower 2
 ]
 
 MIN_GAP_TO_BLOCKS = 70.0
@@ -91,8 +93,8 @@ MIN_GAP_BETWEEN_TOWERS = 80.0
 # Settings: check these in the lab
 # ----------------------------------------------------------------------------
 DRY_RUN = False       # True = no arm, uses FAKE_HEIGHTS to test the solver
-STEP = True           # True = press Enter before every arm move
-SPEED = 60            # mm/s for set_position
+STEP = False           # True = press Enter before every arm move
+SPEED = 150            # mm/s for set_position
 GRIPPER_SPEED = 2000
 
 GRIP_OPEN = 150
@@ -209,16 +211,19 @@ def solve(heights):
 # ----------------------------------------------------------------------------
 class Robot:
     def __init__(self):
+        
         from xarm.wrapper import XArmAPI
         self.arm = XArmAPI(ARM_IP)
         while self.arm.get_err_warn_code()[1][0]:
             print("Error flagged: is the emergency stop released?")
+            print(self.arm.get_err_warn_code())
             time.sleep(0.5)
             self.arm.clean_error()
         self.arm.motion_enable(True)
         self.arm.set_mode(0)      # position control
         self.arm.set_state(0)
         time.sleep(0.5)
+        self.return_to_initial()
 
     def pos(self):
         return self.arm.get_position()[1]
@@ -277,6 +282,31 @@ class Robot:
         self.move("set down", z=place_z)
         self.grip(GRIP_OPEN)
         self.move("retreat", z=clear_z + h)
+        self.return_to_initial()
+        
+    def return_to_initial(self):
+        self.arm.clean_error()
+        self.arm.clean_bio_gripper_error()
+        self.arm.motion_enable(True)
+        self.arm.set_mode(0)
+        self.arm.set_state(0)
+        time.sleep(0.1)
+
+        self.arm.set_servo_angle(angle=initialAngles, speed=25, wait=False)
+        while True:
+            if self.arm.get_err_warn_code()[1][0] != 0:
+                self.arm.clean_error()
+                self.arm.motion_enable(True)
+                self.arm.set_mode(0)
+                self.arm.set_state(0)
+                time.sleep(0.1)
+                self.arm.set_servo_angle(angle=initialAngles, speed=25, wait=False)
+
+            cur = self.arm.get_servo_angle()[1][:6]
+            if all(abs(cur[j] - initialAngles[j]) < 0.5 for j in range(6)):
+                print("Reached initial joint position safely!")
+                break
+            time.sleep(0.05)        
 
 
 # ----------------------------------------------------------------------------
@@ -323,6 +353,7 @@ def main():
             heights[loc] = h
             print("  location %d: %.1f mm (%.2f in)" % (loc, h, h / 25.4))
     empty = [l for l in range(10) if l not in heights]
+    robot.return_to_initial()
     print("Empty location(s):", empty)
 
     # 2. Solve
@@ -351,9 +382,10 @@ def main():
             robot.pick_and_place(loc, heights[loc], STACK_SPOTS[t], tops[t], clear_z)
             tops[t] += heights[loc]
 
-    robot.move("park", z=TRAVEL_Z + 100)
+    #robot.move("park", z=TRAVEL_Z + 100)
     print("\nDone.")
 
 
 if __name__ == '__main__':
     main()
+
